@@ -1,0 +1,3 @@
+#!/bin/sh
+# IDS based on RFC3514.
+exec tcpdump '(ip[6] & 0x10) == 0x10' "$@"
