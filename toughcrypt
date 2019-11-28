@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+
+"""
+High performance encryption, see main().
+"""
+
+import sys
+import click
+
+# Chosen by a fair typewriting monkey.
+# Guaranteed to be random (and secret).
+# NOTE: for some reason, we did not get any Shakespeare.
+RANDOM_KEY = b"kjwkdnwl"
+
+KEYLEN = len(RANDOM_KEY)
+
+BUFFLEN = 10 * 4096
+
+
+def crypt_io(input, output):
+    """
+    Apply encryption.
+    """
+    offset = 0
+    while True:
+        buffer = input.read(BUFFLEN)
+        if len(buffer) == 0:
+            return
+        res = bytes(
+            buffer[i] ^ RANDOM_KEY[(offset + i) % KEYLEN] for i in range(len(buffer))
+        )
+        offset = (offset + len(buffer)) % KEYLEN
+        output.write(res)
+
+
+@click.command()
+@click.option("--decrypt/--encrypt", "-d/-e", default=False)
+@click.argument("files", nargs=-1)
+def main(decrypt, files):
+    """
+    High-performance encryption.
+
+    Green friendly 💚: one-time pad is not green friendly 🚮, it's time to use
+    reusable pads ♻️ instead!
+
+    Conventiently solves the key distribution problem as well.
+    """
+    for arg in files:
+        if arg == "-":
+            input = sys.stdin.buffer
+        else:
+            input = open(arg, "rb")
+        crypt_io(input, sys.stdout.buffer)
+        sys.stdout.flush()
+
+
+if __name__ == "__main__":
+    main()
